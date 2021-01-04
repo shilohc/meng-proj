@@ -23,6 +23,7 @@ make && make install
 From root directory:
 ```
 ./install/bin/rrt_test
+./install/bin/lemon_test
 ```
 
 
