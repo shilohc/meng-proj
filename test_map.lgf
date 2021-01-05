@@ -1,9 +1,9 @@
 @nodes
 label   floorid coords
-0       0       (0,100)
-1       1       (-100,100)
-2       0       (200,0)
-3       2       (300,0)
+0       0       (311,148)
+1       1       (26,142)
+2       0       (108,312)
+3       2       (100,32)
 
 @edges
         length  between_floor

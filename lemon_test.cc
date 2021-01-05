@@ -3,6 +3,9 @@
 #include <lemon/list_graph.h>
 #include <lemon/lgf_reader.h>
 #include <lemon/dim2.h>
+#include <lemon/dijkstra.h>
+
+#include <opencv2/opencv.hpp>
 
 using namespace lemon;
 
@@ -32,6 +35,33 @@ int main(int argc, char** argv) {
     std::cout << between_floor[a] << std::endl;
   }
   std::cout << title << std::endl;
+
+  // map files are all in current directory and have name format
+  // test_map_[floor_id].png
+
+  std::unordered_map<int, cv::Mat> id_to_map;
+  std::array<int, 3> floor_ids = {0, 1, 2};
+  std::string filename;
+  for (int id : floor_ids) {
+    filename = "test_map_" + std::to_string(id) + ".png";
+    id_to_map[id] = cv::imread(filename);
+  }
+
+  for (ListGraph::NodeIt n(g); n != INVALID; ++n) {
+    cv::Mat map_img;
+    id_to_map[floor_id[n]].copyTo(map_img);
+    cv::Scalar color(0, 255, 0);
+    cv::Point ctr(coords[n].x, coords[n].y);
+    cv::circle(map_img, ctr, 5, color, -1);
+    cv::imwrite("test_out_" + std::to_string(g.id(n)) + ".png", map_img);
+  }
+
+  ListGraph::NodeMap<int> dist(g);
+  ListGraph::Node start = g.nodeFromId(1);
+  ListGraph::Node end = g.nodeFromId(3);
+  //dijkstra(g, length).distMap(dist).run(start, end);
+  dijkstra(g, length).distMap(dist).run(end);
+  std::cout << dist[start] << std::endl;
 
   return 0;
 }

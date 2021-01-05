@@ -20,5 +20,8 @@ target_link_libraries(rrt_test
 )
 
 add_executable(lemon_test lemon_test.cc)
+target_link_libraries(lemon_test
+    ${OpenCV_LIBS}
+)
 
 install(TARGETS rrt_test lemon_test DESTINATION bin)
