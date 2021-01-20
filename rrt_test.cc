@@ -20,10 +20,6 @@ namespace og = ompl::geometric;
 //namespace se2 = ompl::base::SE2StateSpace;
 using se2 = ob::SE2StateSpace;
 using SE2State = ob::ScopedState<ob::SE2StateSpace::StateType>;
-// TODO: oh my god I am losing my fucking mind over the SE2State type.
-// there are so many compiler errors.  what the fuck.
-// i am THIS close to defining a nice struct or whatever with overloaded
-// + and -.  it JUST needs to hold x, y, and yaw that's ALL
 
 class Region {
  public:
@@ -165,7 +161,6 @@ std::vector<std::optional<og::PathGeometric>> find_path(
 
   // TODO: condense total path into a single PathGeometric (will need to be
   // transformed to some global reference frame, probably?)
-  // TODO: what to do if one of the local paths is False?
 }
 */
 
@@ -238,9 +233,6 @@ class Map2DValidityChecker : public ob::StateValidityChecker{
       max_height = map.rows - 1;
     }
 
-  // TODO: i think i am doing something wrong here?  or maybe the viz is
-  // fucked up.  but i am seeing planned paths that intersect with obstacles.
-  // TODO: should maybe be virtual?
   bool isValid(const ob::State* state) const override {
     const auto& se2_state = state->as<ob::SE2StateSpace::StateType>();
 
@@ -344,9 +336,8 @@ class Map2D {
 };
 
 int main(int argc, char** argv) {
-  // TODO: use csail maps
-  const std::string map_file = "/Users/shiloh/Documents/mit/meng_proj/data/fetch_maps/908/merged_map.png";
-  // test map to make sure it is nonempty
+  const std::string map_file = "test_map_whole.png";
+  // TODO: test map to make sure it is nonempty
   //auto map = cv::imread(map_file);
   //std::cout << map.cols << std::endl;
 

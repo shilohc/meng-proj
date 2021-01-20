@@ -21,6 +21,8 @@ target_link_libraries(rrt_test
 
 add_executable(lemon_test lemon_test.cc)
 target_link_libraries(lemon_test
+    ${Boost_LIBRARIES}
+    ${OMPL_LIBRARIES}
     ${OpenCV_LIBS}
 )
 
