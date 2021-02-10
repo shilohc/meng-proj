@@ -21,6 +21,7 @@
 #include <ompl/geometric/SimpleSetup.h>
 
 #include <opencv2/opencv.hpp>
+#include <opencv2/imgproc.hpp>
 
 using namespace lemon;
 namespace ob = ompl::base;
@@ -75,67 +76,68 @@ std::string getImgType(int imgTypeInt) {
 class Map2DValidityChecker : public ob::StateValidityChecker {
  public:
   Map2DValidityChecker(const ob::SpaceInformationPtr &space_info, cv::Mat map) :
-      ob::StateValidityChecker(space_info), map(map) {
-    max_width = map.cols - 1;
-    max_height = map.rows - 1;
-  }
+      ob::StateValidityChecker(space_info), map_(map) {}
 
   bool isValid(const ob::State* state) const override {
     const auto& se2_state = state->as<ob::SE2StateSpace::StateType>();
 
-    const int x = std::clamp((int)se2_state->getX(), 0, max_width);
-    const int y = std::clamp((int)se2_state->getY(), 0, max_height);
-    int val = map.at<uchar>(x, y);
+    const int x = int(se2_state->getX());
+    const int y = int(se2_state->getY());
+    std::cout << "(" << x << ", " << y << ")" << std::endl;
 
-    //std::cout << "(" << x << ", " << y << "): " << val << std::endl;
+    if (!si_->satisfiesBounds(state)) {
+      std::cout << "OOB" << std::endl;
+      return false;
+    }
+
+    const int val = map_.at<uchar>(y, x);
     return (val > 210);
   }
 
  private:
-  cv::Mat map;
-  int max_width;
-  int max_height;
+  cv::Mat map_;
 };
 
 class Floor {
  public:
   Floor() = default;
 
-  Floor(const cv::Mat map, const int id) : map(map), id(id) {
-    space = std::make_shared<ob::SE2StateSpace>();
-    ob::RealVectorBounds bounds(2);
-    bounds.setLow(0.0);
-    bounds.setHigh(0, map.cols);
-    bounds.setHigh(1, map.rows);
-    space->setBounds(bounds);
+  Floor(const cv::Mat map, const int id) : id_(id) {
+    map.copyTo(map_img_);
+    cv::cvtColor(map, map_, cv::COLOR_BGR2GRAY);
 
-    space_info = std::make_shared<ob::SpaceInformation>(space);
+    space_ = std::make_shared<ob::SE2StateSpace>();
+    ob::RealVectorBounds bounds(2);
+    bounds.setLow(0);
+    bounds.setHigh(0, map_.rows);
+    bounds.setHigh(1, map_.cols);
+    space_->setBounds(bounds);
+
+    space_info_ = std::make_shared<ob::SpaceInformation>(space_);
 
     auto validity_checker = std::make_shared<Map2DValidityChecker>(
-        space_info, map);
-    space_info->setStateValidityChecker(validity_checker);
+        space_info_, map_);
+    space_info_->setStateValidityChecker(validity_checker);
   }
 
   std::optional<og::PathGeometric> find_path(
       dim2::Point<double> start_coords, dim2::Point<double> goal_coords) {
-    ob::ScopedState<> start_state(space);
+    ob::ScopedState<> start_state(space_);
     start_state[0] = start_coords.x;
     start_state[1] = start_coords.y;
-    ob::ScopedState<> goal_state(space);
+    ob::ScopedState<> goal_state(space_);
     goal_state[0] = goal_coords.x;
     goal_state[1] = goal_coords.y;
 
-    auto problem_def = std::make_shared<ob::ProblemDefinition>(space_info);
+    auto problem_def = std::make_shared<ob::ProblemDefinition>(space_info_);
     problem_def->setStartAndGoalStates(start_state, goal_state);
 
-    auto planner = std::make_shared<og::RRTstar>(space_info);
-    //auto planner = std::make_shared<og::RRT>(space_info);
-    //auto planner = std::make_shared<og::PRMstar>(space_info);
+    auto planner = std::make_shared<og::RRTstar>(space_info_);
     planner->setProblemDefinition(problem_def);
-    //planner->setRange(20.0);
+    planner->setRange(20.0);
     planner->setup();
 
-    space_info->printSettings(std::cout);
+    space_info_->printSettings(std::cout);
     problem_def->print(std::cout);
 
     ob::PlannerStatus solved = planner->ob::Planner::solve(5.0);
@@ -145,22 +147,36 @@ class Floor {
     if (bool(solved)) {
       ob::PathPtr p = problem_def->getSolutionPath();
       path = *(p->as<og::PathGeometric>());
-      //path->interpolate();
-      cv::Mat map_img;
-      map.copyTo(map_img);
-      viz_point(start_coords, map_img);
-      viz_point(goal_coords, map_img);
-      viz_path(path, map_img);
-      cv::imwrite("test_out.png", map_img);
+      path->interpolate();
+      viz_point(start_coords, map_img_);
+      viz_point(goal_coords, map_img_);
+      viz_path(path, map_img_);
+      cv::imwrite("test_out.png", map_img_);
     }
     return path;
   }
 
+  bool unoccupied(int x, int y) {
+    return map_.at<uchar>(x, y) > 210;
+  }
+
+  void print_test_map() {
+    int max_width = map_.rows - 1;
+    int max_height = map_.cols - 1;
+    for (int x = 0; x <= max_width; ++x) {
+      for (int y = 0; y <= max_height; ++y) {
+        std::cout << !unoccupied(x, y);
+      }
+      std::cout << std::endl;
+    }
+  }
+
  private:
-  int id;
-  cv::Mat map;
-  std::shared_ptr<ob::SE2StateSpace> space;
-  std::shared_ptr<ob::SpaceInformation> space_info;
+  int id_;
+  cv::Mat map_;
+  cv::Mat map_img_;
+  std::shared_ptr<ob::SE2StateSpace> space_;
+  std::shared_ptr<ob::SpaceInformation> space_info_;
 };
 
 int main(int argc, char** argv) {
@@ -221,6 +237,8 @@ int main(int argc, char** argv) {
   //dijkstra(g, length).distMap(dist).run(start, end);
   dijkstra(g, length).distMap(dist).run(end);
   std::cout << dist[start] << std::endl;
+
+  //id_to_floor[0].print_test_map();
 
   id_to_floor[0].find_path(coords[g.nodeFromId(0)], coords[g.nodeFromId(2)]);
 

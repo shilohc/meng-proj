@@ -1,3 +1,5 @@
 build/
 install/
 test_out.png
+test_out_with_points.png
+out.txt
