@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <optional>
 #include <string>
@@ -9,19 +10,21 @@
 #include <lemon/list_graph.h>
 #include <lemon/lgf_reader.h>
 #include <lemon/dim2.h>
-#include <lemon/dijkstra.h>
+//#include <lemon/dijkstra.h>
 
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/spaces/SE2StateSpace.h>
 #include <ompl/config.h>
 #include <ompl/geometric/planners/rrt/RRT.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
-#include <ompl/geometric/planners/prm/PRM.h>
-#include <ompl/geometric/planners/prm/PRMstar.h>
+//#include <ompl/geometric/planners/prm/PRM.h>
+//#include <ompl/geometric/planners/prm/PRMstar.h>
 #include <ompl/geometric/SimpleSetup.h>
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc.hpp>
+
+#include "mfplan/dijkstra.h"
 
 using namespace lemon;
 namespace ob = ompl::base;
@@ -83,10 +86,8 @@ class Map2DValidityChecker : public ob::StateValidityChecker {
 
     const int x = int(se2_state->getX());
     const int y = int(se2_state->getY());
-    std::cout << "(" << x << ", " << y << ")" << std::endl;
 
     if (!si_->satisfiesBounds(state)) {
-      std::cout << "OOB" << std::endl;
       return false;
     }
 
@@ -171,6 +172,15 @@ class Floor {
     }
   }
 
+  void viz_coords(dim2::Point<double> coords) {
+    cv::Mat map_img;
+    map_.copyTo(map_img);
+    cv::Scalar color(0, 255, 0);
+    cv::Point ctr(coords.x, coords.y);
+    cv::circle(map_img, ctr, 5, color, -1);
+    cv::imwrite("test_out_" + std::to_string(id_) + ".png", map_img);
+  }
+
  private:
   int id_;
   cv::Mat map_;
@@ -184,9 +194,12 @@ int main(int argc, char** argv) {
   
   ListGraph::NodeMap<int> floor_id(g);
   ListGraph::NodeMap<dim2::Point<double>> coords(g);
-  ListGraph::EdgeMap<int> length(g);
+  ListGraph::EdgeMap<double> length(g);
   ListGraph::EdgeMap<bool> between_floor(g);
+  ListGraph::EdgeMap<bool> cost(g);
+  //ListGraph::EdgeMap<> best_path(g);
   std::string title;
+  // TODO: add edge/node maps for all structures in pseudocode
 
   graphReader(g, "test_map.lgf")
     .nodeMap("floorid", floor_id)
@@ -196,51 +209,41 @@ int main(int argc, char** argv) {
     .attribute("caption", title)
     .run();
 
-  std::cout << countArcs(g) << std::endl;
-  std::cout << countEdges(g) << std::endl;
-  ListGraph::Node node3 = g.nodeFromId(3);
-  std::cout << floor_id[node3] << std::endl;
-  std::cout << coords[node3] << std::endl;
-  for (ListGraph::IncEdgeIt a(g, node3); a != INVALID; ++a) {
-    std::cout << between_floor[a] << std::endl;
-  }
-  std::cout << title << std::endl;
+  ListGraph::Node start = g.addNode();
+  ListGraph::Node goal = g.addNode();
+  floor_id[start] = 1;
+  floor_id[goal] = 2;
+  coords[start] = dim2::Point(50, 50);
+  coords[goal] = dim2::Point(50, 50);
+  g.addEdge(start, g.nodeFromId(1));
+  g.addEdge(goal, g.nodeFromId(3));
 
   // map files are all in current directory and have name format
   // test_map_[floor_id].png
 
-  //std::unordered_map<int, cv::Mat> id_to_map;
   std::unordered_map<int, Floor> id_to_floor;
   std::array<int, 3> floor_ids = {0, 1, 2};
   std::string filename;
   for (int id : floor_ids) {
     filename = "test_map_" + std::to_string(id) + ".png";
     // TODO: test map first to make sure it is nonempty
-    //id_to_map[id] = cv::imread(filename);
     id_to_floor[id] = Floor(cv::imread(filename), id);
   }
 
+  // visualize doorways
   /*
   for (ListGraph::NodeIt n(g); n != INVALID; ++n) {
-    cv::Mat map_img;
-    id_to_map[floor_id[n]].copyTo(map_img);
-    cv::Scalar color(0, 255, 0);
-    cv::Point ctr(coords[n].x, coords[n].y);
-    cv::circle(map_img, ctr, 5, color, -1);
-    cv::imwrite("test_out_" + std::to_string(g.id(n)) + ".png", map_img);
+    id_to_floor[floor_id[n]].viz_coords(coords[n]);
   }
   */
 
-  ListGraph::NodeMap<int> dist(g);
-  ListGraph::Node start = g.nodeFromId(1);
-  ListGraph::Node end = g.nodeFromId(3);
-  //dijkstra(g, length).distMap(dist).run(start, end);
-  dijkstra(g, length).distMap(dist).run(end);
-  std::cout << dist[start] << std::endl;
+  std::vector<ListGraph::Edge> path = mfplan::dijkstra(g, length, start, goal);
+  std::cout << "dijkstra path length " << path.size() << std::endl;
+  for (ListGraph::Edge e : path) {
+    std::cout << "u: " << g.id(g.u(e)) << " v: " << g.id(g.v(e)) << std::endl;
+  }
 
-  //id_to_floor[0].print_test_map();
-
-  id_to_floor[0].find_path(coords[g.nodeFromId(0)], coords[g.nodeFromId(2)]);
+  //id_to_floor[0].find_path(coords[g.nodeFromId(0)], coords[g.nodeFromId(2)]);
 
   return 0;
 }
