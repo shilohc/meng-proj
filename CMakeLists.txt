@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 3.1)
-project(meng_proj)
+project(mfplan)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+# Turn tests on with "cmake -Dtest=ON"
+option(test "Build all tests" OFF)
 
 find_package(ompl REQUIRED)
 find_package(Boost REQUIRED)
@@ -28,5 +31,15 @@ target_link_libraries(lemon_test
     ${OMPL_LIBRARIES}
     ${OpenCV_LIBS}
 )
+
+if (test)
+  enable_testing()
+  find_package(GTest REQUIRED)
+  include_directories(${GTEST_INCLUDE_DIRS})
+
+  add_executable(test_dijkstra tests/test_dijkstra.cc)
+  target_link_libraries(test_dijkstra GTest::Main GTest::GTest)
+  add_test(NAME test COMMAND test_dijkstra)
+endif (test)
 
 install(TARGETS rrt_test lemon_test DESTINATION bin)

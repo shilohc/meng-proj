@@ -6,6 +6,14 @@ Make sure OMPL, Boost, and OpenCV are installed ([instructions](http://ompl.kavr
 
 Build and install LEMON from source ([instructions](http://lemon.cs.elte.hu/trac/lemon/wiki/InstallLinux)).  This code has been tested only with version 1.3.1.  
 
+If using tests, also build and install googletest from source:
+```
+git clone https://github.com/google/googletest.git && cd googletest
+mkdir build && cd build
+cmake ..
+make && make install
+```
+
 ## Build instructions
 
 From root directory:
@@ -16,12 +24,21 @@ cmake .. -DCMAKE_INSTALL_PREFIX=../install
 make && make install
 ```
 
+If building with tests, use `cmake .. -Dtest=ON`.  (Requires installation of googletest.)
+
 ## Run instructions
 
 From root directory:
 ```
 ./install/bin/rrt_test
 ./install/bin/lemon_test
+```
+
+## Test instructions
+
+From root directory:
+```
+./build/test_dijkstra
 ```
 
 ## `parse_points.py`
