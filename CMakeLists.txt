@@ -14,22 +14,31 @@ include_directories(
     ${Boost_INCLUDE_DIRS}
     ${OMPL_INCLUDE_DIRS}
     ${LEMON_INCLUDE_DIRS}
+    ${OpenCV_INCLUDE_DIRS}
     include
     src
 )
 
-add_executable(rrt_test rrt_test.cc)
-target_link_libraries(rrt_test
+add_library(mfplanner include/mfplan/mfplanner.h src/mfplanner.cc)
+target_link_libraries(mfplanner
     ${Boost_LIBRARIES}
     ${OMPL_LIBRARIES}
     ${OpenCV_LIBS}
 )
+
+#add_executable(rrt_test rrt_test.cc)
+#target_link_libraries(rrt_test
+#    ${Boost_LIBRARIES}
+#    ${OMPL_LIBRARIES}
+#    ${OpenCV_LIBS}
+#)
 
 add_executable(lemon_test src/lemon_test.cc)
 target_link_libraries(lemon_test
     ${Boost_LIBRARIES}
     ${OMPL_LIBRARIES}
     ${OpenCV_LIBS}
+    mfplanner
 )
 
 if (test)
@@ -42,4 +51,5 @@ if (test)
   add_test(NAME test COMMAND test_dijkstra)
 endif (test)
 
-install(TARGETS rrt_test lemon_test DESTINATION bin)
+#install(TARGETS rrt_test lemon_test DESTINATION bin)
+install(TARGETS lemon_test DESTINATION bin)
