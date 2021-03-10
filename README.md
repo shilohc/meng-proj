@@ -30,7 +30,6 @@ If building with tests, use `cmake .. -Dtest=ON`.  (Requires installation of goo
 
 From root directory:
 ```
-./install/bin/rrt_test
 ./install/bin/lemon_test
 ```
 

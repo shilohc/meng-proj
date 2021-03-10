@@ -10,20 +10,17 @@
 #include <lemon/list_graph.h>
 #include <lemon/lgf_reader.h>
 #include <lemon/dim2.h>
-//#include <lemon/dijkstra.h>
 
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/spaces/SE2StateSpace.h>
 #include <ompl/config.h>
-//#include <ompl/geometric/planners/rrt/RRT.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
-//#include <ompl/geometric/planners/prm/PRM.h>
-//#include <ompl/geometric/planners/prm/PRMstar.h>
 #include <ompl/geometric/SimpleSetup.h>
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc.hpp>
 
+#include "mfplan/cv_utils.h"
 #include "mfplan/dijkstra.h"
 #include "mfplan/mfplanner.h"
 
@@ -71,10 +68,12 @@ int main(int argc, char** argv) {
     id_to_floor[id] = mfplan::Floor(cv::imread(filename), id);
   }
 
+  /*
   // visualize doorways
   for (ListGraph::NodeIt n(g); n != INVALID; ++n) {
     id_to_floor[floor_id[n]].viz_coords(coords[n]);
   }
+  */
 
   /*
   std::vector<ListGraph::Edge> path = mfplan::dijkstra(g, length, start, goal);

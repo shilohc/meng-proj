@@ -1,6 +1,6 @@
-#include "mfplan/mfplanner.h"
-
 #include "mfplan/cv_utils.h"
+
+#include "mfplan/mfplanner.h"
 
 using namespace lemon;
 namespace ob = ompl::base;
@@ -61,23 +61,6 @@ std::optional<og::PathGeometric> Floor::find_path(
   }
   return path;
 }
-
-/*
-bool unoccupied(int x, int y) {
-  return map_.at<uchar>(x, y) > 210;
-}
-
-void print_test_map() {
-  int max_width = map_.rows - 1;
-  int max_height = map_.cols - 1;
-  for (int x = 0; x <= max_width; ++x) {
-    for (int y = 0; y <= max_height; ++y) {
-      std::cout << !unoccupied(x, y);
-    }
-    std::cout << std::endl;
-  }
-}
-*/
 
 void Floor::viz_coords(dim2::Point<double> coords) {
   cv::Mat map_img;

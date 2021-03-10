@@ -5,6 +5,8 @@
 
 #include "mfplan/dijkstra.h"
 
+using namespace lemon;
+
 namespace {
 
 TEST(DijkstraTest, SimpleTestMap) {

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
-project(mfplan)
+project(mfplan LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
@@ -16,28 +16,27 @@ include_directories(
     ${LEMON_INCLUDE_DIRS}
     ${OpenCV_INCLUDE_DIRS}
     include
-    src
 )
 
-add_library(mfplanner include/mfplan/mfplanner.h src/mfplanner.cc)
+add_library(cv_utils src/cv_utils.cc include/mfplan/cv_utils.h)
+target_link_libraries(cv_utils ${OpenCV_LIBS})
+
+add_library(dijkstra src/dijkstra.cc include/mfplan/dijkstra.h)
+
+add_library(mfplanner src/mfplanner.cc include/mfplan/mfplanner.h)
 target_link_libraries(mfplanner
     ${Boost_LIBRARIES}
     ${OMPL_LIBRARIES}
     ${OpenCV_LIBS}
 )
 
-#add_executable(rrt_test rrt_test.cc)
-#target_link_libraries(rrt_test
-#    ${Boost_LIBRARIES}
-#    ${OMPL_LIBRARIES}
-#    ${OpenCV_LIBS}
-#)
-
 add_executable(lemon_test src/lemon_test.cc)
 target_link_libraries(lemon_test
     ${Boost_LIBRARIES}
     ${OMPL_LIBRARIES}
     ${OpenCV_LIBS}
+    cv_utils
+    dijkstra
     mfplanner
 )
 
@@ -47,9 +46,8 @@ if (test)
   include_directories(${GTEST_INCLUDE_DIRS})
 
   add_executable(test_dijkstra tests/test_dijkstra.cc)
-  target_link_libraries(test_dijkstra GTest::Main GTest::GTest)
+  target_link_libraries(test_dijkstra dijkstra GTest::Main GTest::GTest)
   add_test(NAME test COMMAND test_dijkstra)
 endif (test)
 
-#install(TARGETS rrt_test lemon_test DESTINATION bin)
 install(TARGETS lemon_test DESTINATION bin)
