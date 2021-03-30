@@ -9,7 +9,7 @@ option(test "Build all tests" OFF)
 find_package(ompl REQUIRED)
 find_package(Boost REQUIRED)
 find_package(OpenCV REQUIRED)
-find_package(lemon REQUIRED)
+find_package(LEMON REQUIRED)
 include_directories(
     ${Boost_INCLUDE_DIRS}
     ${OMPL_INCLUDE_DIRS}
@@ -28,6 +28,7 @@ target_link_libraries(mfplanner
     ${Boost_LIBRARIES}
     ${OMPL_LIBRARIES}
     ${OpenCV_LIBS}
+    dijkstra
 )
 
 add_executable(lemon_test src/lemon_test.cc)

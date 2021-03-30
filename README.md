@@ -2,6 +2,8 @@
 
 ## Installation instructions
 
+This project has been tested on Ubuntu 18.04 LTS.  Parts of it will also work on MacOS Catalina, but OMPL seems to be hit or miss on MacOS.  Trying to get it to work on Windows is not recommended.
+
 Make sure OMPL, Boost, and OpenCV are installed ([instructions](http://ompl.kavrakilab.org/installation.html) for installing OMPL).  
 
 Build and install LEMON from source ([instructions](http://lemon.cs.elte.hu/trac/lemon/wiki/InstallLinux)).  This code has been tested only with version 1.3.1.  
@@ -25,6 +27,15 @@ make && make install
 ```
 
 If building with tests, use `cmake .. -Dtest=ON`.  (Requires installation of googletest.)
+
+The error
+```
+fatal error: Eigen/Core: No such file or directory
+```
+is caused by OMPL expecting `Eigen`, but recent versions are named `eigen3`.  This can be fixed in a hacky way using a symlink:
+```
+sudo ln -s /usr/include/eigen3/Eigen /usr/include/Eigen
+```
 
 ## Run instructions
 
