@@ -20,7 +20,10 @@ TEST(DijkstraTest, SimpleTestMap) {
   g.addEdge(start, g.nodeFromId(1));
   g.addEdge(goal, g.nodeFromId(3));
 
-  std::vector<ListGraph::Edge> path = mfplan::dijkstra(g, length, start, goal);
+  std::tuple<mfplan::EdgeList, double> dijk = mfplan::dijkstra(
+      g, length, start, goal);
+  mfplan::EdgeList path = std::get<0>(dijk);
+  double cost = std::get<1>(dijk);
 
   EXPECT_EQ(path.size(), 5);
 }

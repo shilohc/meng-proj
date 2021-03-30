@@ -13,7 +13,9 @@ bool DijkComparator::operator() (
           (cost_[n1] == cost_[n2] && g_.id(n1) > g_.id(n2)));
 }
 
-std::vector<ListGraph::Edge> dijkstra(ListGraph& g,
+// TODO: deal sensibly with shortest paths with cost infinity or uhhh
+// graphs that have no path from start to goal
+std::tuple<EdgeList, double> dijkstra(ListGraph& g,
     ListGraph::EdgeMap<double>& cost,
     ListGraph::Node& start, ListGraph::Node& goal) {
   ListGraph::NodeMap<double> dist(g);
@@ -25,7 +27,7 @@ std::vector<ListGraph::Edge> dijkstra(ListGraph& g,
   ListGraph::NodeMap<int> parent_edge_id(g);
   ListGraph::NodeMap<ListGraph::Edge> parent_edge(g);
   std::set<ListGraph::Node> visited;
-  dijk_pq frontier(DijkComparator(dist, g));
+  DijkPQ frontier(DijkComparator(dist, g));
   frontier.push(start);
 
   while ((visited.count(goal) == 0) && (!frontier.empty())) {
@@ -46,7 +48,7 @@ std::vector<ListGraph::Edge> dijkstra(ListGraph& g,
     visited.insert(current);
   }
 
-  std::vector<ListGraph::Edge> solution_path;
+  EdgeList solution_path;
   if (visited.count(goal)) {
     ListGraph::Node current = goal;
     while (current != start && g.id(current) != -1) {
@@ -54,7 +56,7 @@ std::vector<ListGraph::Edge> dijkstra(ListGraph& g,
       current = g.oppositeNode(current, parent_edge[current]);
     }
   }
-  return solution_path;
+  return std::make_tuple(solution_path, dist[goal]);
 }
 
 } // namespace mfplan

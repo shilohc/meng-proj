@@ -25,9 +25,11 @@ class DijkComparator {
 // ListGraph::NodeMap<double> dist
 typedef std::priority_queue<lemon::ListGraph::Node,
         std::vector<lemon::ListGraph::Node>,
-        DijkComparator> dijk_pq;
+        DijkComparator> DijkPQ;
 
-std::vector<lemon::ListGraph::Edge> dijkstra(lemon::ListGraph& g,
+typedef std::vector<lemon::ListGraph::Edge> EdgeList;
+
+std::tuple<EdgeList, double> dijkstra(lemon::ListGraph& g,
     lemon::ListGraph::EdgeMap<double>& cost,
     lemon::ListGraph::Node& start, lemon::ListGraph::Node& goal);
 

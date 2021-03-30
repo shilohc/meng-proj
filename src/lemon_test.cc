@@ -47,6 +47,7 @@ int main(int argc, char** argv) {
     .attribute("caption", title)
     .run();
 
+  /*
   ListGraph::Node start = g.addNode();
   ListGraph::Node goal = g.addNode();
   floor_id[start] = 1;
@@ -55,6 +56,9 @@ int main(int argc, char** argv) {
   coords[goal] = dim2::Point(50, 50);
   g.addEdge(start, g.nodeFromId(1));
   g.addEdge(goal, g.nodeFromId(3));
+  */
+  mfplan::CoordsAndFloor start = std::make_tuple(dim2::Point(50, 50), 1);
+  mfplan::CoordsAndFloor goal = std::make_tuple(dim2::Point(50, 50), 2);
 
   // map files are all in current directory and have name format
   // test_map_[floor_id].png
@@ -74,6 +78,13 @@ int main(int argc, char** argv) {
     id_to_floor[floor_id[n]].viz_coords(coords[n]);
   }
   */
+
+  std::unordered_map<int, std::string> map_files {
+      {0, "test_map_0.png"},
+      {1, "test_map_1.png"},
+      {2, "test_map_2.png"}};
+  auto mfplanner = mfplan::MFPlanner("test_map.lgf", map_files);
+  mfplan::EdgeList path = mfplanner.get_solution_path(start, goal);
 
   /*
   std::vector<ListGraph::Edge> path = mfplan::dijkstra(g, length, start, goal);

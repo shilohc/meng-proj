@@ -15,6 +15,8 @@
 
 #include <opencv2/opencv.hpp>
 
+#include "mfplan/dijkstra.h"
+
 namespace mfplan {
 
 class Map2DValidityChecker : public ompl::base::StateValidityChecker {
@@ -22,19 +24,7 @@ class Map2DValidityChecker : public ompl::base::StateValidityChecker {
   Map2DValidityChecker(const ompl::base::SpaceInformationPtr &space_info,
       cv::Mat map) : ompl::base::StateValidityChecker(space_info), map_(map) {}
 
-  bool isValid(const ompl::base::State* state) const override {
-    const auto& se2_state = state->as<ompl::base::SE2StateSpace::StateType>();
-
-    const int x = int(se2_state->getX());
-    const int y = int(se2_state->getY());
-
-    if (!si_->satisfiesBounds(state)) {
-      return false;
-    }
-
-    const int val = map_.at<uchar>(y, x);
-    return (val > 210);
-  }
+  bool isValid(const ompl::base::State* state) const override;
 
  private:
   cv::Mat map_;
@@ -57,24 +47,26 @@ class Floor {
   std::shared_ptr<ompl::base::SpaceInformation> space_info_;
 };
 
+typedef std::tuple<lemon::dim2::Point<double>, int> CoordsAndFloor;
+
 class MFPlanner {
  public:
   MFPlanner(const std::string& graph_file,
       const std::unordered_map<int, std::string>& map_files);
 
-  // TODO: make a struct that can hold start and goal -- coords wrt
-  // floor map and floor id
-  std::vector<lemon::ListGraph::Edge> get_solution_path();
+  EdgeList get_solution_path(CoordsAndFloor start, CoordsAndFloor goal);
+  double euclidean_dist(lemon::ListGraph::Edge e);
 
  private:
-  // TODO: add edge/node maps for all structures in pseudocode
   lemon::ListGraph g_;
   lemon::ListGraph::NodeMap<int> floor_id_;
   lemon::ListGraph::NodeMap<lemon::dim2::Point<double>> coords_;
-  lemon::ListGraph::EdgeMap<double> length_;
+  lemon::ListGraph::EdgeMap<double> length_; // lower bound length
   lemon::ListGraph::EdgeMap<bool> between_floor_;
-  //lemon::ListGraph::EdgeMap<bool> cost_;
-  //lemon::ListGraph::EdgeMap<> best_path_;
+  lemon::ListGraph::EdgeMap<std::optional< // optional is initialized empty
+    ompl::geometric::PathGeometric>> best_path_;
+  lemon::ListGraph::EdgeMap<double> best_path_length_; // length of best_path_
+  lemon::ListGraph::EdgeMap<double> last_timeout_;
 
   std::unordered_map<int, Floor> id_to_floor_;
 };
