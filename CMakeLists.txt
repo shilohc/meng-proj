@@ -28,6 +28,7 @@ target_link_libraries(mfplanner
     ${Boost_LIBRARIES}
     ${OMPL_LIBRARIES}
     ${OpenCV_LIBS}
+    cv_utils
     dijkstra
 )
 

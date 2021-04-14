@@ -57,8 +57,8 @@ int main(int argc, char** argv) {
   g.addEdge(start, g.nodeFromId(1));
   g.addEdge(goal, g.nodeFromId(3));
   */
-  mfplan::CoordsAndFloor start = std::make_tuple(dim2::Point(50, 50), 1);
-  mfplan::CoordsAndFloor goal = std::make_tuple(dim2::Point(50, 50), 2);
+  mfplan::CoordsAndFloor start = std::make_tuple(dim2::Point(100, 100), 1);
+  mfplan::CoordsAndFloor goal = std::make_tuple(dim2::Point(100, 100), 2);
 
   // map files are all in current directory and have name format
   // test_map_[floor_id].png

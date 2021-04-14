@@ -1,5 +1,6 @@
 #include <cmath>
 #include <limits>
+#include <stdexcept>
 #include "mfplan/cv_utils.h"
 
 #include "mfplan/mfplanner.h"
@@ -42,8 +43,9 @@ Floor::Floor(const cv::Mat map, const int id) : id_(id) {
   space_info_->setStateValidityChecker(validity_checker);
 }
 
-std::optional<og::PathGeometric> Floor::find_path(
-    dim2::Point<double> start_coords, dim2::Point<double> goal_coords) {
+StatusOrPath Floor::find_path(
+    dim2::Point<double> start_coords, dim2::Point<double> goal_coords,
+    double timeout) {
   ob::ScopedState<> start_state(space_);
   start_state[0] = start_coords.x;
   start_state[1] = start_coords.y;
@@ -58,37 +60,34 @@ std::optional<og::PathGeometric> Floor::find_path(
   planner->setProblemDefinition(problem_def);
   planner->setup();
 
-  //space_info_->printSettings(std::cout);
-  //problem_def->print(std::cout);
-
-  // TODO: timeout should be a parameter
-  // TODO: this line is segfaulting and i have NO idea why
-  std::cout << "here goes nothing" << std::endl;
-  planner->ob::Planner::solve(5.0);
-  std::cout << "did i die?" << std::endl;
-  ob::PlannerStatus solved = planner->ob::Planner::solve(5.0);
+  ob::PlannerStatus solved = planner->ob::Planner::solve(timeout);
   std::optional<og::PathGeometric> path;
 
-  std::cout << "solved: " << solved << std::endl;
   if (bool(solved)) {
     ob::PathPtr p = problem_def->getSolutionPath();
     path = *(p->as<og::PathGeometric>());
     path->interpolate();
-    //viz_point(start_coords, map_img_);
-    //viz_point(goal_coords, map_img_);
-    //viz_path(path, map_img_);
-    //cv::imwrite("test_out.png", map_img_);
   }
-  return path;
+  return std::make_tuple(solved, path);
 }
 
 void Floor::viz_coords(dim2::Point<double> coords) {
-  cv::Mat map_img;
-  map_.copyTo(map_img);
   cv::Scalar color(0, 255, 0);
   cv::Point ctr(coords.x, coords.y);
-  cv::circle(map_img, ctr, 5, color, -1);
-  cv::imwrite("test_out_" + std::to_string(id_) + ".png", map_img);
+  cv::circle(map_img_, ctr, 5, color, -1);
+  cv::imwrite("test_out_" + std::to_string(id_) + ".png", map_img_);
+}
+
+void Floor::viz_path(std::optional<og::PathGeometric>& path) {
+  if (!path.has_value()) { return; }
+  cv::Scalar color(255, 0, 0);
+  for (std::size_t i = 0; i < path->getStateCount(); ++i) {
+    double x = path->getState(i)->as<ob::SE2StateSpace::StateType>()->getX();
+    double y = path->getState(i)->as<ob::SE2StateSpace::StateType>()->getY();
+    cv::Point ctr(x, y);
+    cv::circle(map_img_, ctr, 2, color, -1);
+  }
+  cv::imwrite("test_out_" + std::to_string(id_) + ".png", map_img_);
 }
 
 MFPlanner::MFPlanner(const std::string& graph_file,
@@ -104,14 +103,17 @@ MFPlanner::MFPlanner(const std::string& graph_file,
     .run();
 
   for (auto it = map_files.begin(); it != map_files.end(); ++it) {
-    // TODO: make sure map file is nonempty
-    id_to_floor_[it->first] = Floor(cv::imread(it->second), it->first);
+    auto img = cv::imread(it->second);
+    if (img.empty()) {
+      std::cout << "Could not find image file at " << it->second << std::endl;
+      throw std::invalid_argument("image file not found");
+    }
+    id_to_floor_[it->first] = Floor(img, it->first);
   }
 
   for (ListGraph::EdgeIt e(g_); e != INVALID; ++e) {
-    // Between-floor edges should have length pre-populated (or zero)
-    // TODO: what length does Lemon give between-floor edges if not
-    // populated in the lgf file?
+    // Between-floor edges should have length pre-populated (or zero) in
+    // LGF file.  Not sure what will happen otherwise.
     last_timeout_[e] = 0;
     if (!between_floor_[e]) length_[e] = euclidean_dist(e);
     best_path_length_[e] = std::numeric_limits<float>::max();
@@ -123,9 +125,9 @@ double MFPlanner::euclidean_dist(ListGraph::Edge e) {
 }
 
 EdgeList MFPlanner::get_solution_path(
-    CoordsAndFloor start, CoordsAndFloor goal) {
+    CoordsAndFloor start, CoordsAndFloor goal,
+    double t_0, double k_0, double t_mult, double k_mult) {
   // Does phase 1 only.
-  // TODO: add time limit parameter
 
   // Add start and goal as nodes
   ListGraph::Node start_node = g_.addNode();
@@ -134,10 +136,13 @@ EdgeList MFPlanner::get_solution_path(
   coords_[goal_node] = std::get<0>(goal);
   floor_id_[start_node] = std::get<1>(start);
   floor_id_[goal_node] = std::get<1>(goal);
-  // TODO: add edges from start and goal to all other nodes in their floor!
-  // hacky solution for now just for testing purposes :3
-  g_.addEdge(start_node, g_.nodeFromId(1));
-  g_.addEdge(goal_node, g_.nodeFromId(3));
+
+  // add edges from start and goal to all other nodes in their floors
+  for (ListGraph::NodeIt n(g_); n != INVALID; ++n) {
+    if (n == start_node or n == goal_node) continue;
+    if (floor_id_[n] == floor_id_[start_node]) g_.addEdge(start_node, n);
+    if (floor_id_[n] == floor_id_[goal_node]) g_.addEdge(goal_node, n);
+  }
 
   ListGraph::EdgeMap<double> cost(g_);
   ListGraph::EdgeMap<bool> usable(g_);
@@ -154,10 +159,8 @@ EdgeList MFPlanner::get_solution_path(
 
   bool solved = false;
 
-  // TODO: get t_0 and k_0 somehow -- class init params?  params of
-  // get_solution_path?
-  double t = 0.5;
-  double k = 1.5;
+  double t = t_0;
+  double k = k_0;
 
   while (!solved) {
     while (l < k * dijk_min_path_cost) {
@@ -176,22 +179,40 @@ EdgeList MFPlanner::get_solution_path(
         if (!between_floor_[e] && !best_path_[e]) {
           int floor_id = floor_id_[g_.u(e)];
           std::cout << "finding path in floor " << floor_id << " from " << coords_[g_.u(e)] << " to " << coords_[g_.v(e)] << std::endl;
-          best_path_[e] = id_to_floor_[floor_id].find_path(
+          id_to_floor_[floor_id].viz_coords(coords_[g_.u(e)]);
+          id_to_floor_[floor_id].viz_coords(coords_[g_.v(e)]);
+
+          auto status_or_path = id_to_floor_[floor_id].find_path(
               coords_[g_.u(e)], coords_[g_.v(e)]);
+          best_path_[e] = std::get<1>(status_or_path);
           last_timeout_[e] = t;
           if (best_path_[e]) {
             best_path_length_[e] = best_path_[e]->length();
+            id_to_floor_[floor_id].viz_path(best_path_[e]);
           } else {
             usable[e] = false;
             solved = false;
+          }
+
+          auto status = std::get<0>(status_or_path);
+          if (status == ob::PlannerStatus::StatusType::INVALID_START) {
+            std::cout << "invalid start state!!" << std::endl;
+            g_.erase(g_.u(e));
+          }
+          if (status == ob::PlannerStatus::StatusType::INVALID_GOAL) {
+            std::cout << "invalid goal state!!" << std::endl;
+            g_.erase(g_.v(e));
           }
         }
       }
       if (solved) return dijk_shortest_path;
     }
-    t *= 2; // TODO: get this param from somewhere
-    k *= 2;
+    t *= t_mult;
+    k *= k_mult;
   }
+
+  // remove node
+
   return dijk_shortest_path;
 }
 

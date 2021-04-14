@@ -19,6 +19,9 @@
 
 namespace mfplan {
 
+typedef std::tuple<ompl::base::PlannerStatus,
+        std::optional<ompl::geometric::PathGeometric>> StatusOrPath;
+
 class Map2DValidityChecker : public ompl::base::StateValidityChecker {
  public:
   Map2DValidityChecker(const ompl::base::SpaceInformationPtr &space_info,
@@ -34,10 +37,12 @@ class Floor {
  public:
   Floor() = default;
   Floor(const cv::Mat map, const int id);
-  std::optional<ompl::geometric::PathGeometric> find_path(
+  StatusOrPath find_path(
       lemon::dim2::Point<double> start_coords,
-      lemon::dim2::Point<double> goal_coords);
+      lemon::dim2::Point<double> goal_coords,
+      double timeout=5.0);
   void viz_coords(lemon::dim2::Point<double> coords);
+  void viz_path(std::optional<ompl::geometric::PathGeometric>& path);
 
  private:
   int id_;
@@ -54,7 +59,8 @@ class MFPlanner {
   MFPlanner(const std::string& graph_file,
       const std::unordered_map<int, std::string>& map_files);
 
-  EdgeList get_solution_path(CoordsAndFloor start, CoordsAndFloor goal);
+  EdgeList get_solution_path(CoordsAndFloor start, CoordsAndFloor goal,
+      double t_0=0.5, double k_0=1.5, double t_mult=2, double k_mult=2);
   double euclidean_dist(lemon::ListGraph::Edge e);
 
  private:

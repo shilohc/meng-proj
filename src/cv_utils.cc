@@ -1,18 +1,22 @@
 #include "mfplan/cv_utils.h"
 
+namespace ob = ompl::base;
+
 namespace mfplan {
 
+// this is duplicated by Floor::viz_path, but leaving it in for now just in case
 void viz_path(std::optional<ompl::geometric::PathGeometric> path, cv::Mat img) {
   if (!path.has_value()) { return; }
   cv::Scalar color(255, 0, 0);
   for (std::size_t i = 0; i < path->getStateCount(); ++i) {
-    double x = path->getState(i)->as<ompl::base::SE2StateSpace::StateType>()->getX();
-    double y = path->getState(i)->as<ompl::base::SE2StateSpace::StateType>()->getY();
+    double x = path->getState(i)->as<ob::SE2StateSpace::StateType>()->getX();
+    double y = path->getState(i)->as<ob::SE2StateSpace::StateType>()->getY();
     cv::Point ctr(x, y);
     cv::circle(img, ctr, 2, color, -1);
   }
 }
 
+// duplicated by Floor::viz_coords
 void viz_point(lemon::dim2::Point<double> coords, cv::Mat img) {
   cv::Scalar color(0, 255, 0);
   cv::Point ctr(coords.x, coords.y);
