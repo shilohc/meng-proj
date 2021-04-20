@@ -40,7 +40,7 @@ class Floor {
   StatusOrPath find_path(
       lemon::dim2::Point<double> start_coords,
       lemon::dim2::Point<double> goal_coords,
-      double timeout=5.0);
+      double timeout=0.5);
   void viz_coords(lemon::dim2::Point<double> coords);
   void viz_path(std::optional<ompl::geometric::PathGeometric>& path);
 

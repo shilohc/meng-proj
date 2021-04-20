@@ -1,6 +1,8 @@
 #include <cmath>
 #include <limits>
 #include <stdexcept>
+//#include <ompl/base/OptimizationObjective.h>
+#include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include "mfplan/cv_utils.h"
 
 #include "mfplan/mfplanner.h"
@@ -41,11 +43,16 @@ Floor::Floor(const cv::Mat map, const int id) : id_(id) {
   auto validity_checker = std::make_shared<Map2DValidityChecker>(
       space_info_, map_);
   space_info_->setStateValidityChecker(validity_checker);
+  space_info_->setup();
 }
 
 StatusOrPath Floor::find_path(
     dim2::Point<double> start_coords, dim2::Point<double> goal_coords,
     double timeout) {
+  // TODO: it would probably make sense to split this into two functions:
+  // one to set up the planning problem and one to put more time into planning.
+  // Will also need to be able to configure early-return mode vs. path-
+  // optimization mode for the phase 2 implementation.
   ob::ScopedState<> start_state(space_);
   start_state[0] = start_coords.x;
   start_state[1] = start_coords.y;
@@ -53,8 +60,15 @@ StatusOrPath Floor::find_path(
   goal_state[0] = goal_coords.x;
   goal_state[1] = goal_coords.y;
 
+  // set a high cost threshold so RRT* will return immediately after finding
+  // any valid path
+  ob::OptimizationObjectivePtr objective(
+      new ob::PathLengthOptimizationObjective(space_info_));
+  objective->setCostThreshold(ob::Cost(std::numeric_limits<float>::max()));
+
   auto problem_def = std::make_shared<ob::ProblemDefinition>(space_info_);
   problem_def->setStartAndGoalStates(start_state, goal_state);
+  problem_def->setOptimizationObjective(objective);
 
   auto planner = std::make_shared<og::RRTstar>(space_info_);
   planner->setProblemDefinition(problem_def);

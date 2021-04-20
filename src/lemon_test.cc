@@ -1,4 +1,6 @@
 #include <algorithm>
+#include <chrono>
+#include <ctime>
 #include <iostream>
 #include <limits>
 #include <memory>
@@ -84,7 +86,14 @@ int main(int argc, char** argv) {
       {1, "test_map_1.png"},
       {2, "test_map_2.png"}};
   auto mfplanner = mfplan::MFPlanner("test_map.lgf", map_files);
+
+  auto start_time = std::chrono::system_clock::now();
   mfplan::EdgeList path = mfplanner.get_solution_path(start, goal);
+  auto end_time = std::chrono::system_clock::now();
+
+  std::chrono::duration<double> elapsed_seconds = end_time - start_time;
+  std::cout << "solution path found after " << elapsed_seconds.count()
+            << " seconds" << std::endl;
 
   /*
   std::vector<ListGraph::Edge> path = mfplan::dijkstra(g, length, start, goal);
