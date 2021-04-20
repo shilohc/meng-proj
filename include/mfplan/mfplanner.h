@@ -40,7 +40,7 @@ class Floor {
   StatusOrPath find_path(
       lemon::dim2::Point<double> start_coords,
       lemon::dim2::Point<double> goal_coords,
-      double timeout=0.5);
+      double timeout=5.0);
   void viz_coords(lemon::dim2::Point<double> coords);
   void viz_path(std::optional<ompl::geometric::PathGeometric>& path);
 
@@ -61,6 +61,8 @@ class MFPlanner {
 
   EdgeList get_solution_path(CoordsAndFloor start, CoordsAndFloor goal,
       double t_0=0.5, double k_0=1.5, double t_mult=2, double k_mult=2);
+  // TODO: apparently OMPL provides a distance() function on space information
+  // do i want to use that here instead??
   double euclidean_dist(lemon::ListGraph::Edge e);
 
  private:

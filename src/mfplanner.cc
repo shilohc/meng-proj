@@ -1,7 +1,6 @@
 #include <cmath>
 #include <limits>
 #include <stdexcept>
-//#include <ompl/base/OptimizationObjective.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include "mfplan/cv_utils.h"
 
@@ -34,9 +33,12 @@ Floor::Floor(const cv::Mat map, const int id) : id_(id) {
   space_ = std::make_shared<ob::SE2StateSpace>();
   ob::RealVectorBounds bounds(2);
   bounds.setLow(0);
-  bounds.setHigh(0, map_.rows);
-  bounds.setHigh(1, map_.cols);
+  bounds.setHigh(0, map_.cols);
+  bounds.setHigh(1, map_.rows);
   space_->setBounds(bounds);
+
+  // set longest valid segment length to 4 pixels
+  space_->setLongestValidSegmentFraction(4/std::fmax(map_.rows, map_.cols));
 
   space_info_ = std::make_shared<ob::SpaceInformation>(space_);
 
@@ -72,12 +74,15 @@ StatusOrPath Floor::find_path(
 
   auto planner = std::make_shared<og::RRTstar>(space_info_);
   planner->setProblemDefinition(problem_def);
+  //planner->setRange(6);
+  //planner->setRange(10);
   planner->setup();
 
   ob::PlannerStatus solved = planner->ob::Planner::solve(timeout);
   std::optional<og::PathGeometric> path;
 
   if (bool(solved)) {
+    // TODO: if final solution cost is infinity that shouldn't count as solved
     ob::PathPtr p = problem_def->getSolutionPath();
     path = *(p->as<og::PathGeometric>());
     path->interpolate();
@@ -125,11 +130,23 @@ MFPlanner::MFPlanner(const std::string& graph_file,
     id_to_floor_[it->first] = Floor(img, it->first);
   }
 
+  // Add within-floor edges with appropriately populated length
+  // Between-floor edges should have length pre-populated (or zero) in LGF file.
+  // Not sure what will happen otherwise, but it probably won't be good.
+  for (ListGraph::NodeIt n1(g_); n1 != INVALID; ++n1) {
+    for (ListGraph::NodeIt n2(g_); n2 != INVALID; ++n2) {
+      // TODO: would like to set this to std::next(n1) but std::next doesn't
+      // work on NodeIts for some reason
+      if ((floor_id_[n1] == floor_id_[n2]) and (n1 != n2)) {
+        auto e = g_.addEdge(n1, n2);
+        between_floor_[e] = false;
+        length_[e] = euclidean_dist(e);
+      }
+    }
+  }
+
   for (ListGraph::EdgeIt e(g_); e != INVALID; ++e) {
-    // Between-floor edges should have length pre-populated (or zero) in
-    // LGF file.  Not sure what will happen otherwise.
     last_timeout_[e] = 0;
-    if (!between_floor_[e]) length_[e] = euclidean_dist(e);
     best_path_length_[e] = std::numeric_limits<float>::max();
   }
 }

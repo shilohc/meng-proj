@@ -59,12 +59,11 @@ int main(int argc, char** argv) {
   g.addEdge(start, g.nodeFromId(1));
   g.addEdge(goal, g.nodeFromId(3));
   */
-  mfplan::CoordsAndFloor start = std::make_tuple(dim2::Point(100, 100), 1);
-  mfplan::CoordsAndFloor goal = std::make_tuple(dim2::Point(100, 100), 2);
 
   // map files are all in current directory and have name format
   // test_map_[floor_id].png
 
+  /*
   std::unordered_map<int, mfplan::Floor> id_to_floor;
   std::array<int, 3> floor_ids = {0, 1, 2};
   std::string filename;
@@ -73,6 +72,7 @@ int main(int argc, char** argv) {
     // TODO: test map first to make sure it is nonempty
     id_to_floor[id] = mfplan::Floor(cv::imread(filename), id);
   }
+  */
 
   /*
   // visualize doorways
@@ -81,11 +81,48 @@ int main(int argc, char** argv) {
   }
   */
 
+  mfplan::CoordsAndFloor start = std::make_tuple(dim2::Point(300, 300), 1);
+  //mfplan::CoordsAndFloor goal = std::make_tuple(dim2::Point(100, 100), 2);
+  //mfplan::CoordsAndFloor goal = std::make_tuple(dim2::Point(110, 110), 11);
+  mfplan::CoordsAndFloor goal = std::make_tuple(dim2::Point(110, 110), 191);
+
+  /*
   std::unordered_map<int, std::string> map_files {
       {0, "test_map_0.png"},
       {1, "test_map_1.png"},
       {2, "test_map_2.png"}};
   auto mfplanner = mfplan::MFPlanner("test_map.lgf", map_files);
+  */
+  std::unordered_map<int, std::string> map_files {
+      {1, "mit_basement_map/1_0.png"},
+      {2, "mit_basement_map/2_0.png"},
+      {3, "mit_basement_map/3_0.png"},
+      {4, "mit_basement_map/4_0.png"},
+      {5, "mit_basement_map/5_0.png"},
+      {6, "mit_basement_map/6_0.png"},
+      {62, "mit_basement_map/6C_0.png"},
+      {7, "mit_basement_map/7_0.png"},
+      {8, "mit_basement_map/8_0.png"},
+      {9, "mit_basement_map/9_0.png"},
+      {10, "mit_basement_map/10_0.png"},
+      {11, "mit_basement_map/11_0.png"},
+      {13, "mit_basement_map/13_0.png"},
+      {14, "mit_basement_map/14_0.png"},
+      {16, "mit_basement_map/16_0.png"},
+      {18, "mit_basement_map/18_0.png"},
+      {26, "mit_basement_map/26_0.png"},
+      {32, "mit_basement_map/32_0.png"},
+      {36, "mit_basement_map/36_0M.png"},
+      {54, "mit_basement_map/54_00.png"},
+      {56, "mit_basement_map/56_0.png"},
+      {66, "mit_basement_map/66_0.png"},
+      {68, "mit_basement_map/68_0.png"},
+      {76, "mit_basement_map/76_0.png"},
+      {171, "mit_basement_map/E17_0.png"},
+      {181, "mit_basement_map/E18_0.png"},
+      {191, "mit_basement_map/E19_0.png"}};
+  auto mfplanner = mfplan::MFPlanner("mit_basement_map/mit_basement_map.lgf",
+      map_files);
 
   auto start_time = std::chrono::system_clock::now();
   mfplan::EdgeList path = mfplanner.get_solution_path(start, goal);
