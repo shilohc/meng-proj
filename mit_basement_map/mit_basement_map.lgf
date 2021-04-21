@@ -55,9 +55,9 @@ label   floorid coords      name
 53      068     (40,1101)   "68_0 door to 66_0"
 54      068     (1467,3057) "68_0 door to E18_0"
 55      068     (3759,861)  "68_0 door to 76_0"
-56      076     (7152,2264) "76_0 door to 68_0"
-57      076     (538,5328)  "76_0 door to 32_0"
-58      032     (4276,2892) "32_0 door to 76_0"
+56      076     (3570,1160) "76_0 door to 68_0"
+57      076     (258,2666)  "76_0 door to 32_0"
+58      032     (4273,1810) "32_0 door to 76_0"
 59      032     (52,2888)   "32_0 door to 26_0"
 60      026     (1444,974)  "26_0 door to 32_0"
 61      026     (18,1174)   "26_0 door to 36_0M"
@@ -69,6 +69,10 @@ label   floorid coords      name
 67      0181    (2253,316)  "E18_0 door to 68_0"
 68      0181    (1476,1020) "E18_0 door to E17_0"
 69      0181    (727,916)   "E18_0 door to E19_0"
+70      0181    (935,34)    "E18_0 door to E25_0"
+71      0251    (3002,910)  "E25_0 door to E18_0"
+72      0251    (405,150)   "E25_0 door to E23_0"
+73      0231    (3057,391)  "E23_0 door to E25_0"
 
 @edges
         length  between_floor
@@ -106,6 +110,8 @@ label   floorid coords      name
 61  64  0       1
 65  68  0       1
 66  69  0       1
+70  71  0       1
+72  73  0       1
 
 @attributes
 caption "Map of MIT basement tunnels described in LEMON Graph Format"
