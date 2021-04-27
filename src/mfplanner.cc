@@ -72,11 +72,8 @@ StatusOrPath Floor::find_path(
   problem_def->setStartAndGoalStates(start_state, goal_state);
   problem_def->setOptimizationObjective(objective);
 
-  //auto planner = std::make_shared<og::RRTstar>(space_info_);
   auto planner = std::make_shared<og::RRTConnect>(space_info_);
   planner->setProblemDefinition(problem_def);
-  //planner->setRange(6);
-  //planner->setRange(10);
   planner->setup();
 
   ob::PlannerStatus solved = planner->ob::Planner::solve(timeout);
@@ -136,7 +133,7 @@ MFPlanner::MFPlanner(const std::string& graph_file,
   // Not sure what will happen otherwise, but it probably won't be good.
   for (ListGraph::NodeIt n1(g_); n1 != INVALID; ++n1) {
     for (ListGraph::NodeIt n2(g_); n2 != INVALID; ++n2) {
-      // TODO: would like to set this to std::next(n1) but std::next doesn't
+      // would like to set this to std::next(n1) but std::next doesn't
       // work on NodeIts for some reason
       if ((floor_id_[n1] == floor_id_[n2]) and (n1 != n2)) {
         auto e = g_.addEdge(n1, n2);

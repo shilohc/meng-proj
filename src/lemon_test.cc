@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
   mfplan::CoordsAndFloor start = std::make_tuple(dim2::Point(300, 300), 1);
   //mfplan::CoordsAndFloor goal = std::make_tuple(dim2::Point(100, 100), 2);
   //mfplan::CoordsAndFloor goal = std::make_tuple(dim2::Point(110, 110), 11);
-  mfplan::CoordsAndFloor goal = std::make_tuple(dim2::Point(110, 110), 191);
+  mfplan::CoordsAndFloor goal = std::make_tuple(dim2::Point(110, 330), 191);
 
   /*
   std::unordered_map<int, std::string> map_files {
@@ -132,15 +132,17 @@ int main(int argc, char** argv) {
   std::cout << "solution path found after " << elapsed_seconds.count()
             << " seconds" << std::endl;
 
-  /*
-  std::vector<ListGraph::Edge> path = mfplan::dijkstra(g, length, start, goal);
-  std::cout << "dijkstra path length " << path.size() << std::endl;
-  for (ListGraph::Edge e : path) {
-    std::cout << "u: " << g.id(g.u(e)) << " v: " << g.id(g.v(e)) << std::endl;
+  auto composite_map = mfplan::Floor(cv::imread("mit_basement_map/composite_map.png"), 0);
+  start_time = std::chrono::system_clock::now();
+  auto status_or_path = composite_map.find_path(dim2::Point(603, 6285), dim2::Point(10950, 1555), 800.0);
+  end_time = std::chrono::system_clock::now();
+  elapsed_seconds = end_time - start_time;
+  auto best_path = std::get<1>(status_or_path);
+  if (best_path) {
+    composite_map.viz_path(best_path);
   }
-  */
-
-  //id_to_floor[0].find_path(coords[g.nodeFromId(0)], coords[g.nodeFromId(2)]);
+  std::cout << "composite map solution found after " << elapsed_seconds.count()
+            << " seconds" << std::endl;
 
   return 0;
 }
