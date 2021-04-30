@@ -73,6 +73,7 @@ StatusOrPath Floor::find_path(
   problem_def->setOptimizationObjective(objective);
 
   auto planner = std::make_shared<og::RRTConnect>(space_info_);
+  //auto planner = std::make_shared<og::RRTstar>(space_info_);
   planner->setProblemDefinition(problem_def);
   planner->setup();
 
