@@ -2,7 +2,6 @@
 #include <limits>
 #include <stdexcept>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
-#include "mfplan/cv_utils.h"
 
 #include "mfplan/mfplanner.h"
 

@@ -18,9 +18,6 @@ include_directories(
     include
 )
 
-add_library(cv_utils src/cv_utils.cc include/mfplan/cv_utils.h)
-target_link_libraries(cv_utils ${OpenCV_LIBS})
-
 add_library(dijkstra src/dijkstra.cc include/mfplan/dijkstra.h)
 
 add_library(mfplanner src/mfplanner.cc include/mfplan/mfplanner.h)
@@ -28,7 +25,6 @@ target_link_libraries(mfplanner
     ${Boost_LIBRARIES}
     ${OMPL_LIBRARIES}
     ${OpenCV_LIBS}
-    cv_utils
     dijkstra
 )
 
@@ -37,7 +33,6 @@ target_link_libraries(lemon_test
     ${Boost_LIBRARIES}
     ${OMPL_LIBRARIES}
     ${OpenCV_LIBS}
-    cv_utils
     dijkstra
     mfplanner
 )

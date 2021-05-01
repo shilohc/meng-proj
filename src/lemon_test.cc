@@ -22,7 +22,6 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include "mfplan/cv_utils.h"
 #include "mfplan/dijkstra.h"
 #include "mfplan/mfplanner.h"
 
