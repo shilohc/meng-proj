@@ -251,7 +251,7 @@ EdgeList MFPlanner::get_solution_path(
 void MFPlanner::print_edges(EdgeList edges) {
   for (ListGraph::Edge e : edges) {
     if (between_floor_[e]) {
-      std::cout << "Take elevator " << g_.id(e) << " between floor "
+      std::cout << "Take edge " << g_.id(e) << " between floor "
         << floor_id_[g_.u(e)] << " and floor " << floor_id_[g_.v(e)] 
         << std::endl;
     } else {

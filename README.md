@@ -52,9 +52,9 @@ sudo ln -s /usr/include/eigen3/Eigen /usr/include/Eigen
 
 ## Run instructions
 
-The primary executable `lemon_test` takes as argument YAML file describing a planning problem.  For example, running
+The primary executable `run_planner` takes as argument YAML file describing a planning problem.  For example, running
 ```
-./install/bin/lemon_test "problems/mit_basement_1_to_e19.yaml"
+./install/bin/run_planner "problems/mit_basement_1_to_e19.yaml"
 ```
 from the root directory of the repo will try to find a path from building 1 to building E19 in the MIT basement map.
 

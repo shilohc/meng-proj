@@ -30,8 +30,8 @@ target_link_libraries(mfplanner
     dijkstra
 )
 
-add_executable(lemon_test src/lemon_test.cc)
-target_link_libraries(lemon_test
+add_executable(run_planner src/run_planner.cc)
+target_link_libraries(run_planner
     ${Boost_LIBRARIES}
     ${OMPL_LIBRARIES}
     ${OpenCV_LIBS}
@@ -50,4 +50,4 @@ if (test)
   add_test(NAME test COMMAND test_dijkstra)
 endif (test)
 
-install(TARGETS lemon_test DESTINATION bin)
+install(TARGETS run_planner DESTINATION bin)
