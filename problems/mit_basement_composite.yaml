@@ -1,0 +1,11 @@
+---
+map_name: "composite_map/composite_map.yaml"
+start:
+  floor: 0
+  coords: [603, 6285]
+goal:
+  floor: 0
+  coords: [10950, 1555]
+# Use RRT-Connect for phase 1?
+use_rrt_connect: true
+---

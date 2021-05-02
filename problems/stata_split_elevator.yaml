@@ -1,0 +1,14 @@
+---
+map_name: "stata_map/stata_map.yaml"
+start:
+  floor: 9
+  coords: [982, 1846]
+goal:
+  floor: 7
+  coords: [3169, 1618]
+# Use RRT-Connect for phase 1?
+use_rrt_connect: true
+# Parameters t_0 and k_0
+t_0: 0.5
+k_0: 8
+---

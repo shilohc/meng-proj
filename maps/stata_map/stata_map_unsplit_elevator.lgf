@@ -67,14 +67,14 @@ label   floorid coords          name
 93      009     (3111, 896)     "32_9 elevator 1 to G tower"
 94      009     (3130, 972)     "32_9 elevator 2 to G tower"
 95      009     (3185, 1044)    "32_9 elevator 3 to G tower"
-100     010     (114, 102)      "32 elevator dimension 1 in D tower"
-101     010     (114, 182)      "32 elevator dimension 2 in D tower"
-102     010     (114, 264)      "32 elevator dimension 3 in D tower"
-103     011     (159, 176)      "32 elevator dimension 1 in G tower"
-104     011     (185, 252)      "32 elevator dimension 2 in G tower"
-105     011     (225, 323)      "32 elevator dimension 3 in G tower"
-106     012     (86, 81)        "32 elevator dimension in G tower floors 4-6"
-107     013     (99, 87)        "32 elevator dimension in daycare"
+100     010     (140, 660)      "32 elevator dimension 1 in D tower"
+101     010     (140, 740)      "32 elevator dimension 2 in D tower"
+102     010     (140, 820)      "32 elevator dimension 3 in D tower"
+103     010     (2725, 423)     "32 elevator dimension 1 in G tower"
+104     010     (2750, 493)     "32 elevator dimension 2 in G tower"
+105     010     (2785, 573)     "32 elevator dimension 3 in G tower"
+106     010     (1670, 100)     "32 elevator dimension in G tower floors 4-6"
+107     010     (480, 1530)     "32 elevator dimension in daycare"
 
 @edges
         length  between_floor

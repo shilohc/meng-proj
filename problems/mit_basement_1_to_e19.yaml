@@ -1,0 +1,11 @@
+---
+map_name: "mit_basement_map/mit_basement_map.yaml"
+start:
+  floor: 1
+  coords: [300, 300]
+goal:
+  floor: 191
+  coords: [110, 330]
+# Use RRT-Connect for phase 1?
+use_rrt_connect: true
+---

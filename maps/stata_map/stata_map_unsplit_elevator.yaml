@@ -1,5 +1,5 @@
 ---
-lgf_file: "stata_map/stata_map.lgf"
+lgf_file: "stata_map_unsplit_elevator.lgf"
 map_files:
   0: "32_0.png"
   1: "32_1.png"
@@ -11,8 +11,5 @@ map_files:
   7: "32_7.png"
   8: "32_8.png"
   9: "32_9.png"
-  10: "32_elevator_D.png"
-  11: "32_elevator_G.png"
-  12: "32_elevator_4-6.png"
-  13: "32_elevator_daycare.png"
+  10: "32_elevator_dimension.png"
 ---
