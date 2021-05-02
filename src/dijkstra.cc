@@ -1,3 +1,5 @@
+#include <limits>
+
 #include "mfplan/dijkstra.h"
 
 using namespace lemon;
@@ -13,8 +15,6 @@ bool DijkComparator::operator() (
           (cost_[n1] == cost_[n2] && g_.id(n1) > g_.id(n2)));
 }
 
-// TODO: deal sensibly with shortest paths with cost infinity or uhhh
-// graphs that have no path from start to goal
 std::tuple<EdgeList, double> dijkstra(ListGraph& g,
     ListGraph::EdgeMap<double>& cost,
     ListGraph::Node& start, ListGraph::Node& goal) {
@@ -55,8 +55,11 @@ std::tuple<EdgeList, double> dijkstra(ListGraph& g,
       solution_path.push_back(parent_edge[current]);
       current = g.oppositeNode(current, parent_edge[current]);
     }
+    return std::make_tuple(solution_path, dist[goal]);
+  } else {
+    // No path from start to goal
+    return std::make_tuple(solution_path, std::numeric_limits<float>::max());
   }
-  return std::make_tuple(solution_path, dist[goal]);
 }
 
 } // namespace mfplan

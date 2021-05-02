@@ -80,7 +80,6 @@ StatusOrPath Floor::find_path(
   std::optional<og::PathGeometric> path;
 
   if (bool(solved)) {
-    // TODO: if final solution cost is infinity that shouldn't count as solved
     ob::PathPtr p = problem_def->getSolutionPath();
     path = *(p->as<og::PathGeometric>());
     path->interpolate();
@@ -185,6 +184,10 @@ EdgeList MFPlanner::get_solution_path(
   EdgeList dijk_shortest_path = std::get<0>(dijk);
   double dijk_min_path_cost = std::get<1>(dijk) + 0.01;
   double l = dijk_min_path_cost;
+  if (dijk_min_path_cost == std::numeric_limits<float>::max()) {
+    std::cout << "No path between start and goal floors!" << std::endl;
+    return dijk_shortest_path;
+  }
 
   bool solved = false;
 
@@ -241,8 +244,6 @@ EdgeList MFPlanner::get_solution_path(
     t *= t_mult;
     k *= k_mult;
   }
-
-  // remove node
 
   return dijk_shortest_path;
 }
