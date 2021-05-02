@@ -1,0 +1,6 @@
+---
+lgf_file: "test_map.lgf"
+map_files:
+  0: "test_map_0.png"
+  1: "test_map_1.png"
+  2: "test_map_2.png"

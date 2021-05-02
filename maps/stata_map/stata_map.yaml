@@ -1,0 +1,14 @@
+---
+lgf_file: "stata_map.lgf"
+map_files:
+  0: "32_0.png"
+  1: "32_1.png"
+  2: "32_2.png"
+  3: "32_3.png"
+  4: "32_4.png"
+  5: "32_5.png"
+  6: "32_6.png"
+  7: "32_7.png"
+  8: "32_8.png"
+  9: "32_9.png"
+  10: "32_elevator_dimension.png"
