@@ -92,7 +92,7 @@ void Floor::viz_coords(dim2::Point<double> coords) {
   cv::Scalar color(0, 255, 0);
   cv::Point ctr(coords.x, coords.y);
   cv::circle(map_img_, ctr, 5, color, -1);
-  cv::imwrite("test_out_" + std::to_string(id_) + ".png", map_img_);
+  cv::imwrite("output/test_out_" + std::to_string(id_) + ".png", map_img_);
 }
 
 void Floor::viz_path(std::optional<og::PathGeometric>& path) {
@@ -104,7 +104,7 @@ void Floor::viz_path(std::optional<og::PathGeometric>& path) {
     cv::Point ctr(x, y);
     cv::circle(map_img_, ctr, 2, color, -1);
   }
-  cv::imwrite("test_out_" + std::to_string(id_) + ".png", map_img_);
+  cv::imwrite("output/test_out_" + std::to_string(id_) + ".png", map_img_);
 }
 
 MFPlanner::MFPlanner(const std::string& graph_file,
@@ -183,7 +183,7 @@ EdgeList MFPlanner::get_solution_path(
 
   std::tuple<EdgeList, double> dijk = dijkstra(g_, cost, start_node, goal_node);
   EdgeList dijk_shortest_path = std::get<0>(dijk);
-  double dijk_min_path_cost = std::get<1>(dijk);
+  double dijk_min_path_cost = std::get<1>(dijk) + 0.01;
   double l = dijk_min_path_cost;
 
   bool solved = false;
@@ -192,6 +192,7 @@ EdgeList MFPlanner::get_solution_path(
   double k = k_0;
 
   while (!solved) {
+    std::cout << "max l: " << k * dijk_min_path_cost << std::endl;
     while (l < k * dijk_min_path_cost) {
       for (ListGraph::EdgeIt e(g_); e != INVALID; ++e) {
         cost[e] = length_[e];
@@ -213,9 +214,10 @@ EdgeList MFPlanner::get_solution_path(
 
           auto status_or_path = id_to_floor_[floor_id].find_path(
               coords_[g_.u(e)], coords_[g_.v(e)]);
+          auto planner_status = std::get<0>(status_or_path);
           best_path_[e] = std::get<1>(status_or_path);
           last_timeout_[e] = t;
-          if (best_path_[e]) {
+          if (planner_status == ob::PlannerStatus::EXACT_SOLUTION) {
             best_path_length_[e] = best_path_[e]->length();
             id_to_floor_[floor_id].viz_path(best_path_[e]);
           } else {
@@ -243,6 +245,18 @@ EdgeList MFPlanner::get_solution_path(
   // remove node
 
   return dijk_shortest_path;
+}
+
+void MFPlanner::print_edges(EdgeList edges) {
+  for (ListGraph::Edge e : edges) {
+    if (between_floor_[e]) {
+      std::cout << "Take elevator " << g_.id(e) << " between floor "
+        << floor_id_[g_.u(e)] << " and floor " << floor_id_[g_.v(e)] 
+        << std::endl;
+    } else {
+      std::cout << "Travel through floor " << floor_id_[g_.u(e)] << std::endl;
+    }
+  }
 }
 
 } // namespace mfplan

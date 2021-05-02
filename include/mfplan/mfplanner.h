@@ -61,10 +61,11 @@ class MFPlanner {
       const std::unordered_map<int, std::string>& map_files);
 
   EdgeList get_solution_path(CoordsAndFloor start, CoordsAndFloor goal,
-      double t_0=0.5, double k_0=1.5, double t_mult=2, double k_mult=2);
+      double t_0=0.5, double k_0=2, double t_mult=2, double k_mult=2);
   // TODO: apparently OMPL provides a distance() function on space information
   // do i want to use that here instead??
   double euclidean_dist(lemon::ListGraph::Edge e);
+  void print_edges(EdgeList edges);
 
  private:
   lemon::ListGraph g_;

@@ -2,4 +2,3 @@
 # If no LGF file is specified, assumes a single-floor map
 map_files:
   0: "composite_map.png"
----

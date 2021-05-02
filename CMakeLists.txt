@@ -10,11 +10,13 @@ find_package(ompl REQUIRED)
 find_package(Boost REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(LEMON REQUIRED)
+find_package(yaml-cpp REQUIRED)
 include_directories(
     ${Boost_INCLUDE_DIRS}
     ${OMPL_INCLUDE_DIRS}
     ${LEMON_INCLUDE_DIRS}
     ${OpenCV_INCLUDE_DIRS}
+    ${yaml-cpp_INCLUDE_DIRS}
     include
 )
 
@@ -33,6 +35,7 @@ target_link_libraries(lemon_test
     ${Boost_LIBRARIES}
     ${OMPL_LIBRARIES}
     ${OpenCV_LIBS}
+    yaml-cpp
     dijkstra
     mfplanner
 )
