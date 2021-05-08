@@ -41,7 +41,7 @@ class Floor {
   StatusOrPath find_path(
       lemon::dim2::Point<double> start_coords,
       lemon::dim2::Point<double> goal_coords,
-      double timeout=5.0);
+      double timeout, bool use_rrt_connect=false);
   void viz_coords(lemon::dim2::Point<double> coords);
   void viz_path(std::optional<ompl::geometric::PathGeometric>& path);
 
@@ -60,7 +60,8 @@ class MFPlanner {
   MFPlanner(const std::string& graph_file,
       const std::unordered_map<int, std::string>& map_files);
 
-  EdgeList get_solution_path(CoordsAndFloor start, CoordsAndFloor goal,
+  EdgeList get_solution_path(
+      CoordsAndFloor start, CoordsAndFloor goal, bool use_rrt_connect=false,
       double t_0=0.5, double k_0=2, double t_mult=2, double k_mult=2);
   double euclidean_dist(lemon::ListGraph::Edge e);
   void print_edges(EdgeList edges);

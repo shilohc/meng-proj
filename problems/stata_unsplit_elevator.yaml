@@ -7,7 +7,7 @@ goal:
   floor: 7
   coords: [3169, 1618]
 # Use RRT-Connect for phase 1?
-use_rrt_connect: true
+use_rrt_connect: false
 # Parameters t_0 and k_0
 t_0: 0.5
 k_0: 8

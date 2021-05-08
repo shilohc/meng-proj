@@ -7,5 +7,5 @@ goal:
   floor: 0
   coords: [10950, 1555]
 # Use RRT-Connect for phase 1?
-use_rrt_connect: true
-t_0: 500
+use_rrt_connect: false
+t_0: 1500

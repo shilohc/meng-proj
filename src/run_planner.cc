@@ -66,17 +66,18 @@ void setup_problem(std::string desc_file) {
     std::cout << "loaded map" << std::endl;
 
     start_time = std::chrono::system_clock::now();
-    mfplan::EdgeList path = mfplanner.get_solution_path(start, goal, t_0, k_0);
+    mfplan::EdgeList path = mfplanner.get_solution_path(
+        start, goal, use_rrt_connect, t_0, k_0);
     end_time = std::chrono::system_clock::now();
     elapsed_seconds = end_time - start_time;
     mfplanner.print_edges(path);
   } else {
-    auto floor = mfplan::Floor(cv::imread(map_files[0]), 0);
     start_time = std::chrono::system_clock::now();
+    auto floor = mfplan::Floor(cv::imread(map_files[0]), 0);
     auto status_or_path = floor.find_path(
-        std::get<0>(start), std::get<0>(goal), t_0);
+        std::get<0>(start), std::get<0>(goal), t_0, use_rrt_connect);
     end_time = std::chrono::system_clock::now();
-    std::chrono::duration<double> elapsed_seconds = end_time - start_time;
+    elapsed_seconds = end_time - start_time;
     auto best_path = std::get<1>(status_or_path);
     if (best_path) {
       floor.viz_path(best_path);

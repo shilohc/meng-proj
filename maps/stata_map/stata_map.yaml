@@ -1,5 +1,5 @@
 ---
-lgf_file: "stata_map/stata_map.lgf"
+lgf_file: "stata_map.lgf"
 map_files:
   0: "32_0.png"
   1: "32_1.png"

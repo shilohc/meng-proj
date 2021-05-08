@@ -49,11 +49,14 @@ Floor::Floor(const cv::Mat map, const int id) : id_(id) {
 
 StatusOrPath Floor::find_path(
     dim2::Point<double> start_coords, dim2::Point<double> goal_coords,
-    double timeout) {
+    double timeout, bool use_rrt_connect) {
   // TODO: it would probably make sense to split this into two functions:
   // one to set up the planning problem and one to put more time into planning.
   // Will also need to be able to configure early-return mode vs. path-
   // optimization mode for the phase 2 implementation.
+  // use_rrt_connect will also add complexity in reusing the planning problem
+  // across phase 1 and phase 2; since RRT-Connect is not asymptotically optimal
+  // it can't be used for phase 2.
   ob::ScopedState<> start_state(space_);
   start_state[0] = start_coords.x;
   start_state[1] = start_coords.y;
@@ -71,8 +74,12 @@ StatusOrPath Floor::find_path(
   problem_def->setStartAndGoalStates(start_state, goal_state);
   problem_def->setOptimizationObjective(objective);
 
-  auto planner = std::make_shared<og::RRTConnect>(space_info_);
-  //auto planner = std::make_shared<og::RRTstar>(space_info_);
+  std::shared_ptr<ob::Planner> planner;
+  if (use_rrt_connect) {
+    planner = std::make_shared<og::RRTConnect>(space_info_);
+  } else {
+    planner = std::make_shared<og::RRTstar>(space_info_);
+  }
   planner->setProblemDefinition(problem_def);
   planner->setup();
 
@@ -153,7 +160,7 @@ double MFPlanner::euclidean_dist(ListGraph::Edge e) {
 }
 
 EdgeList MFPlanner::get_solution_path(
-    CoordsAndFloor start, CoordsAndFloor goal,
+    CoordsAndFloor start, CoordsAndFloor goal, bool use_rrt_connect,
     double t_0, double k_0, double t_mult, double k_mult) {
   // Does phase 1 only.
 
@@ -199,7 +206,7 @@ EdgeList MFPlanner::get_solution_path(
     while (l < k * dijk_min_path_cost) {
       for (ListGraph::EdgeIt e(g_); e != INVALID; ++e) {
         cost[e] = length_[e];
-        if (best_path_[e]) cost[e] = best_path_length_[e];
+        if (best_path_[e].has_value()) cost[e] = best_path_length_[e];
         if (!usable[e]) cost[e] = std::numeric_limits<float>::max();
       }
       dijk = dijkstra(g_, cost, start_node, goal_node);
@@ -209,23 +216,40 @@ EdgeList MFPlanner::get_solution_path(
       solved = true;
 
       for (ListGraph::Edge e : dijk_shortest_path) {
-        if (!between_floor_[e] && !best_path_[e]) {
+        if (!between_floor_[e] && !best_path_[e].has_value()) {
           int floor_id = floor_id_[g_.u(e)];
           std::cout << "finding path in floor " << floor_id << " from " << coords_[g_.u(e)] << " to " << coords_[g_.v(e)] << std::endl;
+          std::cout << t << std::endl;
           id_to_floor_[floor_id].viz_coords(coords_[g_.u(e)]);
           id_to_floor_[floor_id].viz_coords(coords_[g_.v(e)]);
 
           auto status_or_path = id_to_floor_[floor_id].find_path(
-              coords_[g_.u(e)], coords_[g_.v(e)]);
+              coords_[g_.u(e)], coords_[g_.v(e)], t, use_rrt_connect);
           auto planner_status = std::get<0>(status_or_path);
-          best_path_[e] = std::get<1>(status_or_path);
-          last_timeout_[e] = t;
-          if (planner_status == ob::PlannerStatus::EXACT_SOLUTION) {
-            best_path_length_[e] = best_path_[e]->length();
-            id_to_floor_[floor_id].viz_path(best_path_[e]);
-          } else {
-            usable[e] = false;
-            solved = false;
+
+          // make sure to update both e and its reverse edge because
+          // a LEMON ListGraph is just a directed graph in a funny hat
+          for (ConEdgeIt<ListGraph> f(g_, g_.u(e), g_.v(e)); f!=INVALID; ++f) {
+            best_path_[f] = std::get<1>(status_or_path);
+            last_timeout_[f] = t;
+            if (planner_status == ob::PlannerStatus::EXACT_SOLUTION) {
+              best_path_length_[f] = best_path_[f]->length();
+              id_to_floor_[floor_id].viz_path(best_path_[f]);
+            } else {
+              // TODO: somehow unusable edges are getting used anyway and
+              // it's screwing up sometimes on the stata split elevator map
+              // with RRT* but not RRT-Connect.  why
+              // it might be fixed now, but it also might not be.
+              // update: it's not fixed :(
+              std::cout << "edge not usable" << std::endl;
+              usable[e] = false;
+              usable[f] = false;
+              best_path_[e].reset();
+              best_path_[f].reset();
+              best_path_length_[e] = 0.0;
+              best_path_length_[f] = 0.0;
+              solved = false;
+            }
           }
 
           auto status = std::get<0>(status_or_path);
@@ -243,6 +267,9 @@ EdgeList MFPlanner::get_solution_path(
     }
     t *= t_mult;
     k *= k_mult;
+    for (ListGraph::EdgeIt e(g_); e != INVALID; ++e) {
+      usable[e] = true;
+    }
   }
 
   return dijk_shortest_path;
@@ -255,7 +282,7 @@ void MFPlanner::print_edges(EdgeList edges) {
         << floor_id_[g_.u(e)] << " and floor " << floor_id_[g_.v(e)] 
         << std::endl;
     } else {
-      std::cout << "Travel through floor " << floor_id_[g_.u(e)] << std::endl;
+      std::cout << "Travel through floor " << floor_id_[g_.u(e)] << " from " << coords_[g_.u(e)] << " to " << coords_[g_.v(e)] << std::endl;
     }
   }
 }
